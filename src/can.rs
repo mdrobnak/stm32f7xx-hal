@@ -9,13 +9,19 @@
 // - do something with the rx filter match index?
 // - conversion (using clock) data rate to/from bit timing
 // - macro out the defintions for CANX
+
+// MD: Fixes needed: extended ID handling.
+
 #![allow(dead_code)]
 
-use gpio::gpiob::{PB12, PB13};
-use gpio::gpiod::{PD0, PD1};
-use gpio::AF9;
-use rcc::APB1;
-use stm32f7x7::{can1, CAN1, CAN2};
+use crate::{
+ gpio::gpiob::{PB12, PB13},
+ gpio::gpiod::{PD0, PD1},
+ gpio::Alternate,
+ gpio::AF9,
+ rcc::APB1,
+};
+use stm32f7::stm32f7x7::{can1, CAN1, CAN2};
 
 // use time::Hertz;
 
@@ -171,11 +177,11 @@ pub unsafe trait TxPin<CAN> {}
 /// RX pin - DO NOT IMPLEMENT THIS TRAIT
 pub unsafe trait RxPin<CAN> {}
 
-unsafe impl TxPin<CAN1> for PD1<AF9> {}
-unsafe impl TxPin<CAN2> for PB13<AF9> {}
+unsafe impl TxPin<CAN1> for PD1<Alternate<AF9>> {}
+unsafe impl TxPin<CAN2> for PB13<Alternate<AF9>> {}
 
-unsafe impl RxPin<CAN1> for PD0<AF9> {}
-unsafe impl RxPin<CAN2> for PB12<AF9> {}
+unsafe impl RxPin<CAN1> for PD0<Alternate<AF9>> {}
+unsafe impl RxPin<CAN2> for PB12<Alternate<AF9>> {}
 
 // CAN abstraction
 pub struct Can<CAN, PINS> {
@@ -337,89 +343,93 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
                 // or
                 // first 16 bit id and second 16 bit id
                 // resets FiR1 state
+
+                // MD: Modeled after the original code before filter blocks were
+                //     put into an array. This feels wrong,
+                //     there should be a better way to do this.
                 match config.filter_number {
-                    0 => can.f0r1.write(|w| unsafe {
+                    0 => can.fb[0].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    1 => can.f1r1.write(|w| unsafe {
+                    1 => can.fb[1].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    2 => can.f2r1.write(|w| unsafe {
+                    2 => can.fb[2].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    3 => can.f3r1.write(|w| unsafe {
+                    3 => can.fb[3].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    4 => can.f4r1.write(|w| unsafe {
+                    4 => can.fb[4].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    5 => can.f5r1.write(|w| unsafe {
+                    5 => can.fb[5].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    6 => can.f6r1.write(|w| unsafe {
+                    6 => can.fb[6].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    7 => can.f7r1.write(|w| unsafe {
+                    7 => can.fb[7].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    8 => can.f8r1.write(|w| unsafe {
+                    8 => can.fb[8].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    9 => can.f9r1.write(|w| unsafe {
+                    9 => can.fb[9].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    10 => can.f10r1.write(|w| unsafe {
+                    10 => can.fb[10].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    11 => can.f11r1.write(|w| unsafe {
+                    11 => can.fb[11].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    12 => can.f12r1.write(|w| unsafe {
+                    12 => can.fb[12].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    13 => can.f13r1.write(|w| unsafe {
+                    13 => can.fb[13].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    14 => can.f14r1.write(|w| unsafe {
+                    14 => can.fb[14].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    15 => can.f15r1.write(|w| unsafe {
+                    15 => can.fb[15].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    16 => can.f16r1.write(|w| unsafe {
+                    16 => can.fb[16].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    17 => can.f17r1.write(|w| unsafe {
+                    17 => can.fb[17].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    18 => can.f18r1.write(|w| unsafe {
+                    18 => can.fb[18].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    19 => can.f19r1.write(|w| unsafe {
+                    19 => can.fb[19].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    20 => can.f20r1.write(|w| unsafe {
+                    20 => can.fb[20].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    21 => can.f21r1.write(|w| unsafe {
+                    21 => can.fb[21].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    22 => can.f22r1.write(|w| unsafe {
+                    22 => can.fb[22].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    23 => can.f23r1.write(|w| unsafe {
+                    23 => can.fb[23].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    24 => can.f24r1.write(|w| unsafe {
+                    24 => can.fb[24].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    25 => can.f25r1.write(|w| unsafe {
+                    25 => can.fb[25].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    26 => can.f26r1.write(|w| unsafe {
+                    26 => can.fb[26].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
-                    27 => can.f27r1.write(|w| unsafe {
+                    27 => can.fb[27].fr1.write(|w| unsafe {
                         w.bits((config.filter_mask_id_low << 16) | (config.filter_id_low))
                     }),
                     _ => return Err(CanError::ConfigurationFailed),
@@ -430,88 +440,88 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
                 // third 16 bit id and fourth 16 bit id
                 // resets FiR2 state
                 match config.filter_number {
-                    0 => can.f0r2.write(|w| unsafe {
+                    0 => can.fb[0].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    1 => can.f1r2.write(|w| unsafe {
+                    1 => can.fb[1].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    2 => can.f2r2.write(|w| unsafe {
+                    2 => can.fb[2].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    3 => can.f3r2.write(|w| unsafe {
+                    3 => can.fb[3].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    4 => can.f4r2.write(|w| unsafe {
+                    4 => can.fb[4].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    5 => can.f5r2.write(|w| unsafe {
+                    5 => can.fb[5].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    6 => can.f6r2.write(|w| unsafe {
+                    6 => can.fb[6].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    7 => can.f7r2.write(|w| unsafe {
+                    7 => can.fb[7].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    8 => can.f8r2.write(|w| unsafe {
+                    8 => can.fb[8].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    9 => can.f9r2.write(|w| unsafe {
+                    9 => can.fb[9].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    10 => can.f10r2.write(|w| unsafe {
+                    10 => can.fb[10].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    11 => can.f11r2.write(|w| unsafe {
+                    11 => can.fb[11].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    12 => can.f12r2.write(|w| unsafe {
+                    12 => can.fb[12].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    13 => can.f13r2.write(|w| unsafe {
+                    13 => can.fb[13].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    14 => can.f14r2.write(|w| unsafe {
+                    14 => can.fb[14].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    15 => can.f15r2.write(|w| unsafe {
+                    15 => can.fb[15].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    16 => can.f16r2.write(|w| unsafe {
+                    16 => can.fb[16].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    17 => can.f17r2.write(|w| unsafe {
+                    17 => can.fb[17].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    18 => can.f18r2.write(|w| unsafe {
+                    18 => can.fb[18].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    19 => can.f19r2.write(|w| unsafe {
+                    19 => can.fb[19].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    20 => can.f20r2.write(|w| unsafe {
+                    20 => can.fb[20].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    21 => can.f21r2.write(|w| unsafe {
+                    21 => can.fb[21].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    22 => can.f22r2.write(|w| unsafe {
+                    22 => can.fb[22].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    23 => can.f23r2.write(|w| unsafe {
+                    23 => can.fb[23].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    24 => can.f24r2.write(|w| unsafe {
+                    24 => can.fb[24].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    25 => can.f25r2.write(|w| unsafe {
+                    25 => can.fb[25].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    26 => can.f26r2.write(|w| unsafe {
+                    26 => can.fb[26].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
-                    27 => can.f27r2.write(|w| unsafe {
+                    27 => can.fb[27].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_id_high))
                     }),
                     _ => return Err(CanError::ConfigurationFailed),
@@ -525,88 +535,88 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
 
                 // 32 bit id or first 32 bit id
                 match config.filter_number {
-                    0 => can.f0r1.write(|w| unsafe {
+                    0 => can.fb[0].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    1 => can.f1r1.write(|w| unsafe {
+                    1 => can.fb[1].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    2 => can.f2r1.write(|w| unsafe {
+                    2 => can.fb[2].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    3 => can.f3r1.write(|w| unsafe {
+                    3 => can.fb[3].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    4 => can.f4r1.write(|w| unsafe {
+                    4 => can.fb[4].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    5 => can.f5r1.write(|w| unsafe {
+                    5 => can.fb[5].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    6 => can.f6r1.write(|w| unsafe {
+                    6 => can.fb[6].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    7 => can.f7r1.write(|w| unsafe {
+                    7 => can.fb[7].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    8 => can.f8r1.write(|w| unsafe {
+                    8 => can.fb[8].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    9 => can.f9r1.write(|w| unsafe {
+                    9 => can.fb[9].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    10 => can.f10r1.write(|w| unsafe {
+                    10 => can.fb[10].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    11 => can.f11r1.write(|w| unsafe {
+                    11 => can.fb[11].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    12 => can.f12r1.write(|w| unsafe {
+                    12 => can.fb[12].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    13 => can.f13r1.write(|w| unsafe {
+                    13 => can.fb[13].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    14 => can.f14r1.write(|w| unsafe {
+                    14 => can.fb[14].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    15 => can.f15r1.write(|w| unsafe {
+                    15 => can.fb[15].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    16 => can.f16r1.write(|w| unsafe {
+                    16 => can.fb[16].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    17 => can.f17r1.write(|w| unsafe {
+                    17 => can.fb[17].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    18 => can.f18r1.write(|w| unsafe {
+                    18 => can.fb[18].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    19 => can.f19r1.write(|w| unsafe {
+                    19 => can.fb[19].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    20 => can.f20r1.write(|w| unsafe {
+                    20 => can.fb[20].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    21 => can.f21r1.write(|w| unsafe {
+                    21 => can.fb[21].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    22 => can.f22r1.write(|w| unsafe {
+                    22 => can.fb[22].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    23 => can.f23r1.write(|w| unsafe {
+                    23 => can.fb[23].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    24 => can.f24r1.write(|w| unsafe {
+                    24 => can.fb[24].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    25 => can.f25r1.write(|w| unsafe {
+                    25 => can.fb[25].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    26 => can.f26r1.write(|w| unsafe {
+                    26 => can.fb[26].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
-                    27 => can.f27r1.write(|w| unsafe {
+                    27 => can.fb[27].fr1.write(|w| unsafe {
                         w.bits((config.filter_id_high << 16) | (config.filter_id_low))
                     }),
                     _ => return Err(CanError::ConfigurationFailed),
@@ -614,88 +624,88 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
 
                 // 32 bit mask or second 32 bit id
                 match config.filter_number {
-                    0 => can.f0r2.write(|w| unsafe {
+                    0 => can.fb[0].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    1 => can.f1r2.write(|w| unsafe {
+                    1 => can.fb[1].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    2 => can.f2r2.write(|w| unsafe {
+                    2 => can.fb[2].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    3 => can.f3r2.write(|w| unsafe {
+                    3 => can.fb[3].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    4 => can.f4r2.write(|w| unsafe {
+                    4 => can.fb[4].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    5 => can.f5r2.write(|w| unsafe {
+                    5 => can.fb[5].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    6 => can.f6r2.write(|w| unsafe {
+                    6 => can.fb[6].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    7 => can.f7r2.write(|w| unsafe {
+                    7 => can.fb[7].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    8 => can.f8r2.write(|w| unsafe {
+                    8 => can.fb[8].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    9 => can.f9r2.write(|w| unsafe {
+                    9 => can.fb[9].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    10 => can.f10r2.write(|w| unsafe {
+                    10 => can.fb[10].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    11 => can.f11r2.write(|w| unsafe {
+                    11 => can.fb[11].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    12 => can.f12r2.write(|w| unsafe {
+                    12 => can.fb[12].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    13 => can.f13r2.write(|w| unsafe {
+                    13 => can.fb[13].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    14 => can.f14r2.write(|w| unsafe {
+                    14 => can.fb[14].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    15 => can.f15r2.write(|w| unsafe {
+                    15 => can.fb[15].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    16 => can.f16r2.write(|w| unsafe {
+                    16 => can.fb[16].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    17 => can.f17r2.write(|w| unsafe {
+                    17 => can.fb[17].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    18 => can.f18r2.write(|w| unsafe {
+                    18 => can.fb[18].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    19 => can.f19r2.write(|w| unsafe {
+                    19 => can.fb[19].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    20 => can.f20r2.write(|w| unsafe {
+                    20 => can.fb[20].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    21 => can.f21r2.write(|w| unsafe {
+                    21 => can.fb[21].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    22 => can.f22r2.write(|w| unsafe {
+                    22 => can.fb[22].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    23 => can.f23r2.write(|w| unsafe {
+                    23 => can.fb[23].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    24 => can.f24r2.write(|w| unsafe {
+                    24 => can.fb[24].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    25 => can.f25r2.write(|w| unsafe {
+                    25 => can.fb[25].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    26 => can.f26r2.write(|w| unsafe {
+                    26 => can.fb[26].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
-                    27 => can.f27r2.write(|w| unsafe {
+                    27 => can.fb[27].fr2.write(|w| unsafe {
                         w.bits((config.filter_mask_id_high << 16) | (config.filter_mask_id_high))
                     }),
                     _ => return Err(CanError::ConfigurationFailed),
@@ -730,14 +740,14 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
     pub fn receive_fifo0(&self) -> Result<CanFrame, CanError> {
         // gather relevant registers
         let (rfr, rir, rdtr, rdlr, rdhr) = (
-            &self.can.rf0r,
-            &self.can.ri0r,
-            &self.can.rdt0r,
-            &self.can.rdl0r,
-            &self.can.rdh0r,
+            &self.can.rfr[0],
+            &self.can.rx[0].rir,
+            &self.can.rx[0].rdtr,
+            &self.can.rx[0].rdlr,
+            &self.can.rx[0].rdhr,
         );
 
-        let pending = rfr.read().fmp0().bits();
+        let pending = rfr.read().fmp().bits();
 
         if pending == 0 {
             return Err(CanError::BufferExhausted);
@@ -782,11 +792,11 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
         rfr.modify(|_, w| {
             w
             // release the FIFO
-            .rfom0().set_bit()
+            .rfom().set_bit()
             // clear FIFO overrun
-            .fovr0().clear_bit()
+            .fovr().clear_bit()
             // clear FIFO full
-            .full0().clear_bit()
+            .full().clear_bit()
         });
 
         Ok(frame)
@@ -795,14 +805,14 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
     pub fn receive_fifo1(&self) -> Result<CanFrame, CanError> {
         // gather relevant registers
         let (rfr, rir, rdtr, rdlr, rdhr) = (
-            &self.can.rf1r,
-            &self.can.ri1r,
-            &self.can.rdt1r,
-            &self.can.rdl1r,
-            &self.can.rdh1r,
+            &self.can.rfr[1],
+            &self.can.rx[1].rir,
+            &self.can.rx[1].rdtr,
+            &self.can.rx[1].rdlr,
+            &self.can.rx[1].rdhr,
         );
 
-        let pending = rfr.read().fmp1().bits();
+        let pending = rfr.read().fmp().bits();
 
         if pending == 0 {
             return Err(CanError::BufferExhausted);
@@ -811,9 +821,11 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
         let ext_id = rir.read().ide().bit();
 
         // get ID
+        // FIXME: This doesn't work currently.
         let id = if ext_id {
             ID::ExtendedID(ExtendedID::new(
-                rir.read().exid().bits() | (rir.read().stid().bits() << 18) as u32,
+                // FIXME: rir.read().exid().bits() | (rir.read().stid().bits() << 18) as u32
+                rir.read().exid().bits() | (rir.read().stid().bits()) as u32,
             ))
         } else {
             ID::BaseID(BaseID::new(rir.read().stid().bits()))
@@ -849,11 +861,11 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
         rfr.modify(|_, w| {
             w
             // release the FIFO
-            .rfom1().set_bit()
+            .rfom().set_bit()
             // clear FIFO overrun
-            .fovr1().clear_bit()
+            .fovr().clear_bit()
             // clear FIFO full
-            .full1().clear_bit()
+            .full().clear_bit()
         });
 
         Ok(frame)
@@ -888,10 +900,10 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
     fn transmit_mb0(&self, frame: &CanFrame) -> Result<(), CanError> {
         // gather relevant registers
         let (tir, tdtr, tdlr, tdhr) = (
-            &self.can.ti0r,
-            &self.can.tdt0r,
-            &self.can.tdl0r,
-            &self.can.tdh0r,
+            &self.can.tx[0].tir,
+            &self.can.tx[0].tdtr,
+            &self.can.tx[0].tdlr,
+            &self.can.tx[0].tdhr,
         );
 
         // setup ID, start from TIxR reset
@@ -960,10 +972,10 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
     fn transmit_mb1(&self, frame: &CanFrame) -> Result<(), CanError> {
         // gather relevant registers
         let (tir, tdtr, tdlr, tdhr) = (
-            &self.can.ti1r,
-            &self.can.tdt1r,
-            &self.can.tdl1r,
-            &self.can.tdh1r,
+            &self.can.tx[1].tir,
+            &self.can.tx[1].tdtr,
+            &self.can.tx[1].tdlr,
+            &self.can.tx[1].tdhr,
         );
 
         // setup ID, start from TIxR reset
@@ -1032,10 +1044,10 @@ impl<TX, RX> Can<$CANX, (TX, RX)> {
     fn transmit_mb2(&self, frame: &CanFrame) -> Result<(), CanError> {
         // gather relevant registers
         let (tir, tdtr, tdlr, tdhr) = (
-            &self.can.ti2r,
-            &self.can.tdt2r,
-            &self.can.tdl2r,
-            &self.can.tdh2r,
+            &self.can.tx[2].tir,
+            &self.can.tx[2].tdtr,
+            &self.can.tx[2].tdlr,
+            &self.can.tx[2].tdhr,
         );
 
         // setup ID, start from TIxR reset
