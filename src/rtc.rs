@@ -408,14 +408,14 @@ fn unlock(apb1: &mut APB1, pwr: &mut PWR) {
             .pwren()
             .set_bit()
     });
-    pwr.cr.modify(|_, w| {
+    pwr.cr1.modify(|_, w| {
         w
             // Enable access to the backup registers
             .dbp()
             .set_bit()
     });
 
-    while pwr.cr.read().dbp().bit_is_clear() {}
+    while pwr.cr1.read().dbp().bit_is_clear() {}
 }
 
 fn enable(bdcr: &mut BDCR) {
