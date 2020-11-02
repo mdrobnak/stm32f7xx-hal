@@ -353,7 +353,7 @@ impl Rtcc for Rtc {
     fn get_date(&mut self) -> Result<NaiveDate, Self::Error> {
         let day = self.get_day().unwrap();
         let month = self.get_month().unwrap();
-        let year = self.get_year().unwrap() + 1970; // 1970-01-01 is epoch begin.
+        let year = self.get_year().unwrap();
 
         Ok(NaiveDate::from_ymd(year.into(), month.into(), day.into()))
     }
@@ -363,7 +363,7 @@ impl Rtcc for Rtc {
 
         let day = self.get_day().unwrap();
         let month = self.get_month().unwrap();
-        let year = self.get_year().unwrap() + 1970; // 1970-01-01 is epoch begin.
+        let year = self.get_year().unwrap();
 
         let seconds = self.get_seconds().unwrap();
         let minutes = self.get_minutes().unwrap();
